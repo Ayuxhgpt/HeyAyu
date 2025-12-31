@@ -1,27 +1,53 @@
-# FancyFont PRO (MERN Stack)
+# FancyFont PRO
 
-## Quick Start (Local Development)
+> **The World's Most Aggressive Text Generator.**
+> Dominate your feed with 80+ premium fonts, glitch text (Zalgo), and advanced text modifiers.
 
-To run the application locally, you will need two separate terminal windows.
+![Project Preview](https://via.placeholder.com/800x400.png?text=FancyFont+PRO+Preview)
 
-### 1. Backend Server (Terminal 1)
-```bash
-cd server
-npm install
-node seed.js  # Run once to populate database
-node index.js
-```
-*Server runs on port 5000.*
+## 🚀 Features
 
-### 2. Frontend Client (Terminal 2)
+### 💎 Premium Design System
+- **Cyber-Noir Aesthetic:** Deep black interface with subtle noise textures and glassmorphism.
+- **Traffic-Light Consistency:** Uses a smart indicator system (🟢 Safe, 🔴 GlITCH) so you know which fonts work on Instagram/TikTok before you copy.
+- **Mobile First:** Built on a responsive grid that looks perfect on phones.
+
+### 🛠️ Advanced Tools
+- **Modifier Bar:** Instantly add **Sparkles**, **Wings**, or **Glitch Effects** to ANY font.
+- **Zalgo Engine:** Create chaotic, corrupted text with adjustable intensity.
+- **Kaomoji Library:** Access hundreds of Japanese emoticons.
+
+---
+
+## 🏗️ Tech Stack
+
+This project uses a modern **MERN (Serverless)** architecture:
+
+- **Frontend:** React 18 + Vite (Fast, Modular)
+- **Backend:** Node.js + Express (API Route)
+- **Database:** MongoDB (Stores Font Data)
+- **Deployment:** Vercel (CI/CD Pipeline)
+
+---
+
+## ⚡ Quick Start
+
+### Frontend (Client)
 ```bash
 cd client
 npm install
 npm run dev
 ```
-*Client runs on http://localhost:5173*.
+
+### Backend (Server)
+```bash
+cd server
+npm install
+node index.js
+```
 
 ---
 
-## Deployment
-See [DEPLOYMENT.md](DEPLOYMENT.md) for instructions on deploying to Vercel.
+## 📝 License
+© 2025 Sukoon Dev. All Rights Reserved.
+Unbeatable Performance.
