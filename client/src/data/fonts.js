@@ -215,12 +215,7 @@ export const FONT_DATA = [
         "fontUpper": "𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍",
         "fontDigits": "0123456789"
     },
-    {
-        "fontName": "Pig Tails",
-        "fontLower": "ꮧᏸፈꮄꮛꭶꮆꮒꭵꮰꮶꮭꮇꮑꭷꭾꭴꮢꮥꮦꮼꮙꮗጀꭹፚ",
-        "fontUpper": "ᏗᏰፈᎴᏋᎦᎶᏂᎥᏠᏦᏝᎷᏁᎧᎮᎤᏒᏕᏖᏬᏉᏇጀᎩፚ",
-        "fontDigits": "θꛨ𑋲ѮЧҔҨ𑁭8૭"
-    },
+
     {
         "fontName": "Icy",
         "fontLower": "abcdefghijklmnopqrstuvwxyz",
@@ -683,12 +678,7 @@ export const FONT_DATA = [
         "fontUpper": "𐤠ƁƇƊƸƑƓǶƖʝƘȴ𐒄ƝⰙꝒꝖⱤⳜƬꓴƲⱲ𐊴ƳⱿ",
         "fontDigits": "θꛨ੨ѮЧҔҨ𑁭8૭"
     },
-    {
-        "fontName": "Beach Birds",
-        "fontLower": "𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫",
-        "fontUpper": "𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ",
-        "fontDigits": "𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡"
-    },
+
     {
         "fontName": "Modern Whacks",
         "fontLower": "𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇",
@@ -2255,18 +2245,8 @@ export const FONT_DATA = [
         "fontUpper": "A͟B͟C͟D͟E͟F͟G͟H͟I͟J͟K͟L͟M͟N͟O͟P͟Q͟R͟S͟T͟U͟V͟W͟X͟Y͟Z͟",
         "fontDigits": "0123456789"
     },
-    {
-        "fontName": "Ladybug",
-        "fontLower": "ꍏꌃꏳꀷꏂꎇꁅꀍꀤ꒻ꀘ꒒ꎭꈤꂦᖘꆰꋪꌚ꓄ꀎ꒦ꅐꉧꌩꁴ",
-        "fontUpper": "ꍏꌃꏳꀷꏂꎇꁅꀍꀤ꒻ꀘ꒒ꎭꈤꂦᖘꆰꋪꌚ꓄ꀎ꒦ꅐꉧꌩꁴ",
-        "fontDigits": "0123456789"
-    },
-    {
-        "fontName": "Rays",
-        "fontLower": "a҉b҉c҉d҉e҉f҉g҉h҉i҉j҉k҉l҉m҉n҉o҉p҉q҉r҉s҉t҉u҉v҉w҉x҉y҉z҉",
-        "fontUpper": "A҉B҉C҉D҉E҉F҉G҉H҉I҉J҉K҉L҉M҉N҉O҉P҉Q҉R҉S҉T҉U҉V҉W҉X҉Y҉Z҉",
-        "fontDigits": "0123456789"
-    },
+
+
     {
         "fontName": "Birds",
         "fontLower": "a҈b҈c҈d҈e҈f҈g҈h҈i҈j҈k҈l҈m҈n҈o҈p҈q҈r҈s҈t҈u҈v҈w҈x҈y҈z҈",
@@ -2297,10 +2277,5 @@ export const FONT_DATA = [
         "fontUpper": "ልጌርዕቿቻኗዘጎጋጕረጠክዐየዒዪነፕሁሀሠሸሃጊ",
         "fontDigits": "0123456789"
     },
-    {
-        "fontName": "Frozen",
-        "fontLower": "a༙b༙c༙d༙e༙f༙g༙h༙i༙j༙k༙l༙m༙n༙o༙p༙q༙r༙s༙t༙u༙v༙w༙x༙y༙z༙",
-        "fontUpper": "A༙B༙C༙D༙E༙F༙G༙H༙I༙J༙K༙L༙M༙N༙O༙P༙Q༙R༙S༙T༙U༙V༙W༙X༙Y༙Z༙",
-        "fontDigits": "0123456789"
-    }
+
 ];
