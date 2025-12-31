@@ -3,10 +3,12 @@ import Header from './components/Header'
 import Hero from './components/Hero'
 import Footer from './components/Footer'
 import Generator from './components/Generator'
+import CustomCursor from './components/ui/CustomCursor'
 
 function App() {
   return (
     <>
+      <CustomCursor />
       <div className="interactive-bg" id="interactiveBg"></div>
       <div className="noise-overlay"></div>
 

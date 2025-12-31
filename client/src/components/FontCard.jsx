@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
 const FontCard = ({ fontName, transformedText, isFavorite, safety, onCopy, onToggleFav }) => {
     const [justCopied, setJustCopied] = useState(false);
@@ -22,11 +23,20 @@ const FontCard = ({ fontName, transformedText, isFavorite, safety, onCopy, onTog
     }[safety?.level || 'safe'] || 'safety-safe';
 
     return (
-        <div
+        <motion.div
             className={`font-card ${justCopied ? 'copied' : ''}`}
             onClick={handleCopy}
             role="button"
             tabIndex={0}
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{
+                scale: 1.02,
+                y: -5,
+                transition: { type: "spring", stiffness: 400, damping: 25 }
+            }}
+            whileTap={{ scale: 0.96 }}
         >
             <div className="card-header">
                 <span className="font-name">{fontName}</span>
@@ -54,7 +64,7 @@ const FontCard = ({ fontName, transformedText, isFavorite, safety, onCopy, onTog
                     <i className="fa-regular fa-copy"></i> COPY
                 </span>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

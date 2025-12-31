@@ -597,3 +597,82 @@ a {
     backdrop-filter: blur(var(--blur));
     border-radius: var(--radius-md);
 }
+
+/* 
+ * SOUL SPARK CURSOR 
+ */
+.custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: difference;
+}
+
+.cursor-dot {
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.cursor-blur {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    opacity: 0.5;
+    filter: blur(20px);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+/* Hover State - "The Lens" */
+.custom-cursor.hover .cursor-dot {
+    transform: translate(-50%, -50%) scale(0.5);
+}
+
+.custom-cursor.hover .cursor-blur {
+    width: 60px;
+    height: 60px;
+    background: var(--accent);
+    opacity: 0.8;
+}
+
+/* Hide default cursor globally */
+body,
+a,
+button,
+input {
+    cursor: none !important;
+}
+
+.typing-cursor {
+    display: inline-block;
+    width: 2px;
+    background-color: var(--primary);
+    animation: blink 1s step-end infinite;
+    margin-left: 4px;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
