@@ -1,7 +1,4 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import ReactWindow from 'react-window';
-const Grid = ReactWindow['FixedSizeGrid'] || ReactWindow.default?.['FixedSizeGrid'];
-import AutoSizer from 'react-virtualized-auto-sizer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontEngine } from '../utils/fontEngine';
 import { ValidationEngine } from '../utils/validation';
@@ -223,62 +220,23 @@ export default function Generator() {
                     </div>
                 </div>
             ) : (
-                <div style={{ height: '60vh', width: '100%', position: 'relative' }}>
-
-                    {/* Ghost Typing Empty State */}
-                    <AnimatePresence>
-                        {text.length === 0 && activeMode === 'fonts' && (
-                            <motion.div
-                                className="ghost-overlay"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 0.5 }}
-                                exit={{ opacity: 0 }}
-                                style={{
-                                    position: 'absolute',
-                                    top: '40%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    pointerEvents: 'none',
-                                    textAlign: 'center',
-                                    zIndex: 0,
-                                    color: 'var(--text-muted)'
-                                }}
-                            >
-                                <motion.div
-                                    animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.98, 1.02, 0.98] }}
-                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                                >
-                                    <i className="fa-regular fa-keyboard" style={{ fontSize: '2.5rem', marginBottom: '1rem', display: 'block' }}></i>
-                                    <p style={{ fontSize: '1.2rem', letterSpacing: '1px' }}>KINETIC ENGINE READY</p>
-                                    <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>Type above to ignite the grid</p>
-                                </motion.div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <AutoSizer>
-                        {({ height, width }) => {
-                            const columnCount = width > 800 ? 3 : (width > 500 ? 2 : 1);
-                            const rowCount = Math.ceil(gridData.length / columnCount);
-                            const columnWidth = width / columnCount;
-
-                            return (
-                                <Grid
-                                    columnCount={columnCount}
-                                    columnWidth={columnWidth}
-                                    height={height}
-                                    rowCount={rowCount}
-                                    rowHeight={cardHeight}
-                                    width={width}
-                                    itemData={{ items: gridData, columnCount }}
-                                >
-                                    {Cell}
-                                </Grid>
-                            );
-                        }}
-                    </AutoSizer>
-                </div>
+                <>
+                    {/* Standard CSS Grid Fallback */}
+                    <div className="font-grid" style={{ padding: '0 1rem 4rem 1rem' }}>
+                        {gridData.map((item, idx) => (
+                            <FontCard
+                                key={item.fontName + idx}
+                                fontName={item.fontName}
+                                transformedText={item.transformedText}
+                                isFavorite={favorites.has(item.fontName)}
+                                safety={item.safety}
+                                onCopy={() => { /* Handled in Card */ }}
+                                onToggleFav={toggleFavorite}
+                            />
+                        ))}
+                    </div>
+                </>
             )}
-        </section>
+        </section >
     );
 }
