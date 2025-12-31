@@ -1,27 +1,59 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const FontCard = ({ fontName, transformedText, isFavorite, safety, onCopy, onToggleFav }) => {
+    const [justCopied, setJustCopied] = useState(false);
+
+    const handleCopy = (e) => {
+        e.stopPropagation();
+        onCopy(transformedText, fontName);
+        setJustCopied(true);
+
+        // Trigger haptic feedback if available
+        if (navigator.vibrate) navigator.vibrate(20);
+
+        setTimeout(() => setJustCopied(false), 300);
+    };
+
+    // Map validation level to CSS class
+    const safetyClass = {
+        'safe': 'safety-safe',
+        'warning': 'safety-warn',
+        'danger': 'safety-danger'
+    }[safety?.level || 'safe'] || 'safety-safe';
+
     return (
-        <div className={`font-card ${isFavorite ? 'favorite' : ''}`}>
+        <div
+            className={`font-card ${justCopied ? 'copied' : ''}`}
+            onClick={handleCopy}
+            role="button"
+            tabIndex={0}
+        >
             <div className="card-header">
-                <span className="card-label">{fontName}</span>
-                <div className="card-meta">
+                <span className="font-name">{fontName}</span>
+                <div className="card-meta" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <span
-                        className={`safety-dot ${safety?.safetyLevel || 'safe'}`}
-                        title={safety?.reasons?.join(', ') || 'Safe'}
+                        className={`safety-indicator ${safetyClass}`}
+                        title={safety?.reasons?.join('\n') || 'Safe for most platforms'}
                     ></span>
-                    <button className="fav-btn" onClick={(e) => { e.stopPropagation(); onToggleFav(fontName); }}>
+                    <button
+                        className="fav-btn"
+                        onClick={(e) => { e.stopPropagation(); onToggleFav(fontName); }}
+                        style={{ color: isFavorite ? 'var(--warning)' : 'var(--border-subtle)' }}
+                    >
                         <i className={`fa-star ${isFavorite ? 'fa-solid' : 'fa-regular'}`}></i>
                     </button>
                 </div>
             </div>
-            <div className="card-text" onClick={() => onCopy(transformedText, fontName)}>
+
+            <div className="card-preview">
                 {transformedText || "Fancy Text"}
             </div>
-            {safety?.platformWarning && (
-                <div className="platform-warn">{safety.platformWarning}</div>
-            )}
-            <div className="ripple"></div>
+
+            <div className="copy-overlay">
+                <span className="copy-badge">
+                    <i className="fa-regular fa-copy"></i> COPY
+                </span>
+            </div>
         </div>
     );
 };

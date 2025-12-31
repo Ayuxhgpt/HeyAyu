@@ -10,40 +10,41 @@ const fontEngine = new FontEngine();
 const validationEngine = new ValidationEngine();
 const storageManager = new StorageManager();
 
+
+
 export default function Generator() {
     const [text, setText] = useState('');
     const [platform, setPlatform] = useState('');
-    const [activeTab, setActiveTab] = useState('fonts'); // fonts, glitch, decorations, kaomoji
+    // "Modes" now refers to essentially different tools (Fonts vs Kaomoji)
+    const [activeMode, setActiveMode] = useState('fonts');
+
+    // Modifiers (Applied to all fonts)
+    const [activeDecoration, setActiveDecoration] = useState(null); // Key of decoration
+    const [isGlitchActive, setIsGlitchActive] = useState(false);
+
     const [favorites, setFavorites] = useState(new Set());
-    const [baseGlitchAmount, setBaseGlitchAmount] = useState(20);
     const [toast, setToast] = useState(null);
-    const [styles, setStyles] = useState(fontEngine.getStyles()); // State for fonts
+    const [styles, setStyles] = useState(fontEngine.getStyles());
 
     useEffect(() => {
-        // Load initial favorites
         setFavorites(storageManager.getFavorites());
-
-        // Fetch Fonts from API
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/fonts';
         fetch(apiUrl)
             .then(res => res.json())
             .then(data => {
                 if (data && Array.isArray(data) && data.length > 0) {
-                    console.log("Loaded fonts from API");
                     fontEngine.setFonts(data);
-                    setStyles(fontEngine.getStyles()); // Update state to trigger re-render
+                    setStyles(fontEngine.getStyles());
                 }
             })
-            .catch(err => {
-                console.log("Using local fonts (API offline or error)", err);
-            });
+            .catch(err => console.log("Using local fonts", err));
     }, []);
 
     const handleCopy = async (content, styleName) => {
         try {
             await navigator.clipboard.writeText(content);
-            setToast('COPIED!');
-            setTimeout(() => setToast(null), 2000);
+            // Visual flash handled by FontCard internal state
+            // Logic for storage
             storageManager.saveHistory(content, styleName, styleName);
         } catch (err) {
             console.error('Failed to copy', err);
@@ -52,145 +53,152 @@ export default function Generator() {
 
     const toggleFavorite = (fontName) => {
         const newFavs = new Set(favorites);
-        if (newFavs.has(fontName)) {
-            newFavs.delete(fontName);
-        } else {
-            newFavs.add(fontName);
-        }
+        if (newFavs.has(fontName)) newFavs.delete(fontName);
+        else newFavs.add(fontName);
         setFavorites(newFavs);
         storageManager.toggleFavorite(fontName);
     };
 
-    // Derived Data
-    const decos = useMemo(() => fontEngine.getDecorations(), []);
+    const decorations = useMemo(() => fontEngine.getDecorations(), []);
     const kaomojis = useMemo(() => fontEngine.getKaomoji(), []);
 
-    // Render Logic
+    const processText = (baseText, fontName) => {
+        let result = fontEngine.generate(baseText || "Fancy Font", fontName);
+
+        if (isGlitchActive) {
+            result = fontEngine.generateZalgo(result, 20); // 20% chaos default
+        }
+
+        if (activeDecoration && decorations[activeDecoration]) {
+            const { left, right } = decorations[activeDecoration];
+            result = `${left}${result}${right}`;
+        }
+
+        return result;
+    };
+
+    const renderModifiers = () => (
+        <div className="modifier-bar">
+            <button
+                className={`modifier-btn ${!activeDecoration && !isGlitchActive ? 'active' : ''}`}
+                onClick={() => { setActiveDecoration(null); setIsGlitchActive(false); }}
+            >
+                <i className="fa-solid fa-ban"></i> NORMAL
+            </button>
+
+            <button
+                className={`modifier-btn ${isGlitchActive ? 'active' : ''}`}
+                onClick={() => setIsGlitchActive(!isGlitchActive)}
+            >
+                <i className="fa-solid fa-bolt"></i> GLITCH
+            </button>
+
+            <div style={{ width: 1, background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
+
+            {Object.keys(decorations).map(decoKey => (
+                <button
+                    key={decoKey}
+                    className={`modifier-btn ${activeDecoration === decoKey ? 'active' : ''}`}
+                    onClick={() => setActiveDecoration(activeDecoration === decoKey ? null : decoKey)}
+                >
+                    {decoKey}
+                </button>
+            ))}
+        </div>
+    );
+
     const renderContent = () => {
-        const inputText = text || "Fancy Font";
-
-        if (activeTab === 'fonts') {
+        if (activeMode === 'kaomoji') {
             return (
-                <div className="results-grid" id="fontsContainer">
-                    {styles.map(font => {
-                        const transformed = fontEngine.generate(inputText, font.fontName);
-                        const safety = validationEngine.analyze(transformed, platform);
-                        return (
-                            <FontCard
-                                key={font.fontName}
-                                fontName={font.fontName}
-                                transformedText={transformed}
-                                isFavorite={favorites.has(font.fontName)}
-                                safety={safety}
-                                onCopy={handleCopy}
-                                onToggleFav={toggleFavorite}
-                            />
-                        );
-                    })}
-                </div>
-            );
-        }
-
-        if (activeTab === 'glitch') {
-            const glitchText = fontEngine.generateZalgo(inputText, baseGlitchAmount);
-            return (
-                <div className="tab-content">
-                    <div className="control-panel">
-                        <label>CHAOS LEVEL: <span>{baseGlitchAmount}</span>%</label>
-                        <input
-                            type="range"
-                            min="0" max="100"
-                            value={baseGlitchAmount}
-                            onChange={(e) => setBaseGlitchAmount(parseInt(e.target.value))}
-                            className="styled-slider"
-                        />
-                    </div>
-                    <div className="result-box large-preview" onClick={() => handleCopy(glitchText, 'Glitch')}>
-                        {glitchText}
-                    </div>
-                    <button className="action-btn" onClick={() => handleCopy(glitchText, 'Glitch')}>COPY GLITCH TEXT</button>
-                </div>
-            )
-        }
-
-        if (activeTab === 'decorations') {
-            return (
-                <div className="results-grid">
-                    {Object.entries(decos).map(([name, deco]) => (
-                        <div key={name} className="font-card" onClick={() => handleCopy(`${deco.left} ${inputText} ${deco.right}`, name)}>
-                            <span className="card-label">{name}</span>
-                            <div className="card-text">{deco.left} {inputText} {deco.right}</div>
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-
-        if (activeTab === 'emoticons') {
-            return (
-                <div className="results-grid">
+                <div className="font-grid">
                     {Object.entries(kaomojis).flatMap(([cat, list]) =>
                         list.map((k, i) => (
-                            <div key={`${cat}-${i}`} className="font-card" onClick={() => handleCopy(k, 'Kaomoji')}>
-                                <span className="card-label">{cat}</span>
-                                <div className="card-text">{k}</div>
-                            </div>
+                            <FontCard
+                                key={`${cat}-${i}`}
+                                fontName={`Kaomoji • ${cat}`}
+                                transformedText={k}
+                                isFavorite={false} // Kaomoji favs not implemented yet
+                                safety={{ level: 'safe' }}
+                                onCopy={handleCopy}
+                                onToggleFav={() => { }}
+                            />
                         ))
                     )}
                 </div>
             );
         }
+
+        // Fonts Mode
+        return (
+            <div className="font-grid">
+                {styles.map(font => {
+                    const transformed = processText(text, font.fontName);
+                    const safety = validationEngine.analyze(transformed, platform);
+
+                    // Simple map for now, logic in validation.js returns 'safe', 'warning', 'danger'
+                    if (safety.safetyLevel === 'safe') safety.level = 'safe'; // adapter if needed
+
+                    return (
+                        <FontCard
+                            key={font.fontName}
+                            fontName={font.fontName}
+                            transformedText={transformed}
+                            isFavorite={favorites.has(font.fontName)}
+                            safety={{
+                                level: safety.safetyLevel,
+                                reasons: safety.reasons
+                            }}
+                            onCopy={handleCopy}
+                            onToggleFav={toggleFavorite}
+                        />
+                    );
+                })}
+            </div>
+        );
     };
 
     return (
-        <section id="generator" className="saas-tool-section glass-container">
-            <div className="tool-header">
-                <h3><i className="fa-solid fa-terminal"></i> FANCYFONT_ENGINE_V2.0 (REACT)</h3>
-                <div className="window-controls">
-                    <span className="dot red"></span>
-                    <span className="dot yellow"></span>
-                    <span className="dot green"></span>
+        <section className="app-container">
+            <header className="app-header">
+                <h3>FANCYFONT <span style={{ color: 'var(--accent)' }}>PRO</span></h3>
+                <div className="brand-badge">
+                    <i className="fa-solid fa-check-circle"></i> V2.0 SYSTEM ONLINE
                 </div>
+            </header>
+
+            <div className="input-hero">
+                <input
+                    className="main-input"
+                    type="text"
+                    placeholder="Type something epic..."
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                />
+
+                {activeMode === 'fonts' && renderModifiers()}
             </div>
 
-            <nav className="tabs">
-                <button className={`tab-btn ${activeTab === 'fonts' ? 'active' : ''}`} onClick={() => setActiveTab('fonts')}><i className="fa-solid fa-font"></i> Styles</button>
-                <button className={`tab-btn ${activeTab === 'glitch' ? 'active' : ''}`} onClick={() => setActiveTab('glitch')}><i className="fa-solid fa-bolt"></i> Glitch</button>
-                <button className={`tab-btn ${activeTab === 'decorations' ? 'active' : ''}`} onClick={() => setActiveTab('decorations')}><i className="fa-solid fa-wand-magic-sparkles"></i> Deco</button>
-                <button className={`tab-btn ${activeTab === 'emoticons' ? 'active' : ''}`} onClick={() => setActiveTab('emoticons')}><i className="fa-regular fa-face-smile"></i> Kaomoji</button>
-            </nav>
-
-            <section className="input-area sticky-header">
-                <div className="controls-row">
-                    <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="platform-select">
-                        <option value="">-- No Platform Limit --</option>
-                        {Object.entries(PLATFORMS).map(([key, conf]) => (
-                            <option key={key} value={key}>{conf.label} (Max {conf.max})</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="input-wrapper glow-focus">
-                    <input
-                        type="text"
-                        placeholder="ENTER YOUR TEXT HERE..."
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                    />
-                    {text && (
-                        <button className="icon-btn" onClick={() => setText('')} title="Clear">
-                            <i className="fa-solid fa-xmark"></i>
-                        </button>
-                    )}
-                </div>
-            </section>
-
-            <div className="tab-content-wrapper">
-                {renderContent()}
+            {/* Simple Mode Toggle */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                <button
+                    className={`tab-btn ${activeMode === 'fonts' ? 'active' : ''}`}
+                    onClick={() => setActiveMode('fonts')}
+                >
+                    STYLES
+                </button>
+                <button
+                    className={`tab-btn ${activeMode === 'kaomoji' ? 'active' : ''}`}
+                    onClick={() => setActiveMode('kaomoji')}
+                >
+                    KAOMOJI
+                </button>
             </div>
+
+            {renderContent()}
 
             {toast && (
-                <div id="toast" className="toast visible">
-                    <i className="fa-solid fa-check"></i> <span>{toast}</span>
+                <div className="toast visible">
+                    <span>{toast}</span>
                 </div>
             )}
         </section>
