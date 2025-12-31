@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import ReactWindow from 'react-window';
-const Grid = ReactWindow.FixedSizeGrid;
+import { FixedSizeGrid as Grid } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontEngine } from '../utils/fontEngine';

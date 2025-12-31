@@ -17,11 +17,14 @@ let isConnected = false;
 const connectDB = async () => {
     if (isConnected) return;
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/fancyfont');
+        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/fancyfont', {
+            serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of hanging
+        });
         isConnected = true;
         console.log('MongoDB Connected');
     } catch (err) {
-        console.error('MongoDB Connection Error:', err);
+        console.error('MongoDB Connection Error: Server will continue without DB.');
+        // We do NOT set isConnected to true, so middleware will try again or fail gracefully
     }
 };
 

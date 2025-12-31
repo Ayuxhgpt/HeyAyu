@@ -25,15 +25,18 @@ export class ValidationEngine {
         const combiningMarks = [...text].filter(char => this._isCombiningMark(char)).length;
         const ratio = combiningMarks / text.length;
 
-        if (ratio > 0.4) {
+        if (ratio > 0.6) {
             safetyLevel = 'danger';
             reasons.push("Heavy pseudo-font (Zalgo) detected. May lag devices.");
-        } else if (ratio > 0) {
-            // Some checks for specific unicode blocks
-            if (this._containsMathAlphanumeric(text)) {
-                if (safetyLevel !== 'danger') safetyLevel = 'warning';
-                reasons.push("Uses Mathematical Alphanumeric Symbols. Accessibility screen readers may struggle.");
-            }
+        } else if (ratio > 0.3) {
+            if (safetyLevel !== 'danger') safetyLevel = 'warning';
+            reasons.push("Moderate amount of combining marks. May look glitchy.");
+        }
+
+        // 2. Math Symbol Check (Separate from Zalgo)
+        if (this._containsMathAlphanumeric(text)) {
+            if (safetyLevel !== 'danger') safetyLevel = 'warning';
+            reasons.push("Uses Mathematical Alphanumeric Symbols. Accessibility screen readers may struggle.");
         }
 
         // 2. Platform Check
@@ -53,18 +56,24 @@ export class ValidationEngine {
     }
 
     _isCombiningMark(char) {
-        // Simplified check against our known Zalgo ranges
-        // A robust check would use proper Unicode properties, but we use our heuristic list + general range
+        // Robust check using Unicode properties (if supported) or expanded ranges
+        // Modern browsers support \p{Mark} but we'll use a broad range check for compatibility
         const code = char.codePointAt(0);
 
-        // General Combining Diacritical Marks block (U+0300–U+036F)
+        // 1. General Combining Diacritical Marks (U+0300–U+036F)
         if (code >= 0x0300 && code <= 0x036F) return true;
 
-        // Combining Diacritical Marks Supplement (U+1DC0–U+1DFF)
+        // 2. Combining Diacritical Marks Supplement (U+1DC0–U+1DFF)
         if (code >= 0x1DC0 && code <= 0x1DFF) return true;
 
-        // Combining Marks for Symbols (U+20D0–U+20FF)
+        // 3. Combining Marks for Symbols (U+20D0–U+20FF)
         if (code >= 0x20D0 && code <= 0x20FF) return true;
+
+        // 4. Combining Half Marks (U+FE20–U+FE2F)
+        if (code >= 0xFE20 && code <= 0xFE2F) return true;
+
+        // 5. Combining Diacritical Marks Extended (U+1AB0–U+1AFF)
+        if (code >= 0x1AB0 && code <= 0x1AFF) return true;
 
         return false;
     }
