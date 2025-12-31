@@ -1,4 +1,4 @@
-const FONT_DATA = [
+export const FONT_DATA = [
     {
         "fontName": "Tuxedo",
         "fontLower": "abcdefghijklmnopqrstuvwxyz",

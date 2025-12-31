@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-happy
-=======
 <!DOCTYPE html>
 <html lang="en">
 
@@ -114,6 +111,12 @@ happy
             </nav>
 
             <section class="input-area sticky-header">
+                <div class="controls-row">
+                    <!-- Platform Selector Injected by JS or here -->
+                    <select id="platformMode" class="platform-select">
+                        <option value="">Loading Platforms...</option>
+                    </select>
+                </div>
                 <div class="input-wrapper glow-focus">
                     <input type="text" id="textInput" placeholder="ENTER YOUR TEXT HERE..." autocomplete="off">
                     <button id="clearBtn" class="icon-btn" title="Clear"><i class="fa-solid fa-xmark"></i></button>
@@ -161,13 +164,29 @@ happy
         </footer>
     </div>
 
+    <!-- Side Panel -->
+    <aside class="side-panel collapsed" id="sidePanel">
+        <button class="toggle-panel-btn" id="togglePanelBtn" title="History & Favorites">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </button>
+        <div class="panel-header">
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-target="history">History</button>
+                <button class="panel-tab" data-target="favorites">Favorites</button>
+            </div>
+        </div>
+        <div class="panel-content" id="sideListContainer">
+            <!-- Dynamic Content -->
+            <div class="empty-state">No items yet</div>
+        </div>
+    </aside>
+
     <div id="toast" class="toast hidden">
         <i class="fa-solid fa-check"></i> <span>COPIED!</span>
     </div>
 
-    <script src="font_data.js"></script>
-    <script src="script.js"></script>
+    <!-- Modular Script -->
+    <script type="module" src="assets/js/main.js"></script>
 </body>
 
 </html>
->>>>>>> 4e6dde2 (Initial commit of FanctFont Pro)
