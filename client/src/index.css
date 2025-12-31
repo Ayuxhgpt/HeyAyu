@@ -388,3 +388,205 @@ h4 {
 
 /* Virtualization Container (React Window) need fixed height if used directly, 
    but we might use window scroller. For now, grid handles flow. */
+
+/* 
+* GLOBAL LINKS 
+*/
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s ease;
+}
+
+/* 
+* HEADER & NAV 
+*/
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 100;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-icon {
+    font-size: 1.5rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+.brand-name {
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.03em;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.nav-links a:hover {
+    color: var(--text-main);
+}
+
+.cta-small {
+    color: var(--primary) !important;
+    font-weight: 700 !important;
+}
+
+/* 
+* HERO SECTION 
+*/
+.hero-section {
+    text-align: center;
+    padding: 4rem 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 0.9;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 2.5rem auto;
+    line-height: 1.6;
+}
+
+.hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 4rem;
+}
+
+.cta-button {
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.2s var(--ease-elastic), box-shadow 0.2s ease;
+}
+
+.cta-button.primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+}
+
+.cta-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5);
+}
+
+.cta-button.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    border: 1px solid var(--border-subtle);
+}
+
+.cta-button.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Stats Ticker */
+.stats-ticker {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    display: inline-flex;
+    /* Shrink to fit */
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-num {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-main);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+/* Animations */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 640px) {
+    .navbar {
+        padding: 1rem;
+    }
+
+    .hero-title {
+        font-size: 3rem;
+    }
+
+    .stats-ticker {
+        gap: 1.5rem;
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+    }
+
+    .cta-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
