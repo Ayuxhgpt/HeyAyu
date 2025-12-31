@@ -676,3 +676,85 @@ input {
         opacity: 0;
     }
 }
+
+/* Platform Previews */
+.platform-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem 0;
+}
+
+.preview-card {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-subtle);
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Instagram Specifics */
+.preview-card.instagram .circle-avatar {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+.preview-card.instagram .bio-name {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+/* WhatsApp Specifics */
+.preview-card.whatsapp .message-bubble {
+    background: #005c4b;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    display: inline-block;
+    max-width: 80%;
+}
+
+/* Mobile Cursor Fix */
+@media (max-width: 768px) {
+    .custom-cursor {
+        display: none !important;
+    }
+
+    body,
+    a,
+    button,
+    input {
+        cursor: auto !important;
+    }
+}
+
+/* Experimental Toggle */
+.experimental-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.experimental-toggle input {
+    accent-color: var(--accent);
+}
+
+.experimental-toggle:hover {
+    color: var(--text-main);
+}

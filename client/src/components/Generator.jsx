@@ -1,30 +1,36 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { FixedSizeGrid as Grid } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FontEngine } from '../utils/fontEngine';
 import { ValidationEngine } from '../utils/validation';
 import { StorageManager } from '../utils/storage';
-import { PLATFORMS } from '../utils/constants';
 import FontCard from './FontCard';
+import { useAdaptiveMotion } from '../context/MotionConfigContext';
 
-// Instantiate outside component to avoid re-creation
 const fontEngine = new FontEngine();
 const validationEngine = new ValidationEngine();
 const storageManager = new StorageManager();
 
-
-
 export default function Generator() {
     const [text, setText] = useState('');
-    const [platform, setPlatform] = useState('');
-    // "Modes" now refers to essentially different tools (Fonts vs Kaomoji)
-    const [activeMode, setActiveMode] = useState('fonts');
+    const [activeMode, setActiveMode] = useState('fonts'); // 'fonts' | 'kaomoji' | 'preview'
+    const [platformPreview, setPlatformPreview] = useState('instagram'); // 'instagram' | 'whatsapp'
+    const [showExperimental, setShowExperimental] = useState(false);
 
-    // Modifiers (Applied to all fonts)
-    const [activeDecoration, setActiveDecoration] = useState(null); // Key of decoration
+    // Modifiers
+    const [activeDecoration, setActiveDecoration] = useState(null);
     const [isGlitchActive, setIsGlitchActive] = useState(false);
 
     const [favorites, setFavorites] = useState(new Set());
-    const [toast, setToast] = useState(null);
-    const [styles, setStyles] = useState(fontEngine.getStyles());
+    const [styles, setStyles] = useState([]);
+
+    // Formatting for Grid
+    const gutterSize = 16;
+    const cardHeight = 140;
+
+    // Adaptive Motion Context
+    const { intensity } = useAdaptiveMotion();
 
     useEffect(() => {
         setFavorites(storageManager.getFavorites());
@@ -32,23 +38,26 @@ export default function Generator() {
         fetch(apiUrl)
             .then(res => res.json())
             .then(data => {
-                if (data && Array.isArray(data) && data.length > 0) {
+                if (data && data.length) {
                     fontEngine.setFonts(data);
                     setStyles(fontEngine.getStyles());
                 }
             })
-            .catch(err => console.log("Using local fonts", err));
+            .catch(() => {
+                setStyles(fontEngine.getStyles());
+            });
     }, []);
 
-    const handleCopy = async (content, styleName) => {
-        try {
-            await navigator.clipboard.writeText(content);
-            // Visual flash handled by FontCard internal state
-            // Logic for storage
-            storageManager.saveHistory(content, styleName, styleName);
-        } catch (err) {
-            console.error('Failed to copy', err);
+    const processText = (baseText, fontName) => {
+        let result = fontEngine.generate(baseText || "Fancy Font", fontName);
+        if (isGlitchActive) result = fontEngine.generateZalgo(result, 20);
+        if (activeDecoration) {
+            const decos = fontEngine.getDecorations();
+            if (decos[activeDecoration]) {
+                result = `${decos[activeDecoration].left}${result}${decos[activeDecoration].right}`;
+            }
         }
+        return result;
     };
 
     const toggleFavorite = (fontName) => {
@@ -59,100 +68,64 @@ export default function Generator() {
         storageManager.toggleFavorite(fontName);
     };
 
-    const decorations = useMemo(() => fontEngine.getDecorations(), []);
-    const kaomojis = useMemo(() => fontEngine.getKaomoji(), []);
-
-    const processText = (baseText, fontName) => {
-        let result = fontEngine.generate(baseText || "Fancy Font", fontName);
-
-        if (isGlitchActive) {
-            result = fontEngine.generateZalgo(result, 20); // 20% chaos default
-        }
-
-        if (activeDecoration && decorations[activeDecoration]) {
-            const { left, right } = decorations[activeDecoration];
-            result = `${left}${result}${right}`;
-        }
-
-        return result;
-    };
-
-    const renderModifiers = () => (
-        <div className="modifier-bar">
-            <button
-                className={`modifier-btn ${!activeDecoration && !isGlitchActive ? 'active' : ''}`}
-                onClick={() => { setActiveDecoration(null); setIsGlitchActive(false); }}
-            >
-                <i className="fa-solid fa-ban"></i> NORMAL
-            </button>
-
-            <button
-                className={`modifier-btn ${isGlitchActive ? 'active' : ''}`}
-                onClick={() => setIsGlitchActive(!isGlitchActive)}
-            >
-                <i className="fa-solid fa-bolt"></i> GLITCH
-            </button>
-
-            <div style={{ width: 1, background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
-
-            {Object.keys(decorations).map(decoKey => (
-                <button
-                    key={decoKey}
-                    className={`modifier-btn ${activeDecoration === decoKey ? 'active' : ''}`}
-                    onClick={() => setActiveDecoration(activeDecoration === decoKey ? null : decoKey)}
-                >
-                    {decoKey}
-                </button>
-            ))}
-        </div>
-    );
-
-    const renderContent = () => {
+    // Prepare data for Grid
+    const gridData = useMemo(() => {
         if (activeMode === 'kaomoji') {
-            return (
-                <div className="font-grid">
-                    {Object.entries(kaomojis).flatMap(([cat, list]) =>
-                        list.map((k, i) => (
-                            <FontCard
-                                key={`${cat}-${i}`}
-                                fontName={`Kaomoji • ${cat}`}
-                                transformedText={k}
-                                isFavorite={false} // Kaomoji favs not implemented yet
-                                safety={{ level: 'safe' }}
-                                onCopy={handleCopy}
-                                onToggleFav={() => { }}
-                            />
-                        ))
-                    )}
-                </div>
+            const kaomojis = fontEngine.getKaomoji();
+            return Object.entries(kaomojis).flatMap(([cat, list]) =>
+                list.map(k => ({
+                    fontName: `Kaomoji • ${cat}`,
+                    transformedText: k,
+                    safety: { level: 'safe' }
+                }))
             );
         }
 
-        // Fonts Mode
+        return styles
+            .filter(font => showExperimental || !font.isExperimental)
+            .map(font => {
+                const transformed = processText(text, font.fontName);
+                const dynamicSafety = validationEngine.analyze(transformed, 'instagram');
+                const staticSafety = font.safety || { level: 'safe' };
+
+                let level = 'safe';
+                if (staticSafety.level === 'danger' || dynamicSafety.safetyLevel === 'danger') level = 'danger';
+                else if (staticSafety.level === 'warning' || dynamicSafety.safetyLevel === 'warning') level = 'warning';
+                else if (staticSafety.level === 'experimental') level = 'experimental';
+
+                return {
+                    fontName: font.fontName,
+                    transformedText: transformed,
+                    safety: { level, reasons: [...(staticSafety.reasons || []), ...(dynamicSafety.reasons || [])] },
+                    isExperimental: font.isExperimental
+                };
+            });
+    }, [styles, text, activeMode, showExperimental, activeDecoration, isGlitchActive]);
+
+    const Cell = ({ columnIndex, rowIndex, style, data }) => {
+        const { items, columnCount } = data;
+        const index = rowIndex * columnCount + columnIndex;
+        if (index >= items.length) return null;
+
+        const item = items[index];
+        const cellStyle = {
+            ...style,
+            left: style.left + gutterSize,
+            top: style.top + gutterSize,
+            width: style.width - gutterSize,
+            height: style.height - gutterSize
+        };
+
         return (
-            <div className="font-grid">
-                {styles.map(font => {
-                    const transformed = processText(text, font.fontName);
-                    const safety = validationEngine.analyze(transformed, platform);
-
-                    // Simple map for now, logic in validation.js returns 'safe', 'warning', 'danger'
-                    if (safety.safetyLevel === 'safe') safety.level = 'safe'; // adapter if needed
-
-                    return (
-                        <FontCard
-                            key={font.fontName}
-                            fontName={font.fontName}
-                            transformedText={transformed}
-                            isFavorite={favorites.has(font.fontName)}
-                            safety={{
-                                level: safety.safetyLevel,
-                                reasons: safety.reasons
-                            }}
-                            onCopy={handleCopy}
-                            onToggleFav={toggleFavorite}
-                        />
-                    );
-                })}
+            <div style={cellStyle}>
+                <FontCard
+                    fontName={item.fontName}
+                    transformedText={item.transformedText}
+                    isFavorite={favorites.has(item.fontName)}
+                    safety={item.safety}
+                    onCopy={() => { /* Handled in Card */ }}
+                    onToggleFav={toggleFavorite}
+                />
             </div>
         );
     };
@@ -162,11 +135,23 @@ export default function Generator() {
             <header className="app-header">
                 <h3>FANCYFONT <span style={{ color: 'var(--accent)' }}>PRO</span></h3>
                 <div className="brand-badge">
-                    <i className="fa-solid fa-check-circle"></i> V2.0 SYSTEM ONLINE
+                    <i className="fa-solid fa-check-circle"></i> V5.0 HUMAN-ADAPTIVE
                 </div>
             </header>
 
-            <div className="input-hero">
+            <motion.div
+                className="input-hero"
+                animate={text.length > 0 ? {
+                    scale: 1.02,
+                    borderColor: 'var(--accent)',
+                    boxShadow: '0 0 30px rgba(var(--accent-rgb), 0.2)'
+                } : {
+                    scale: 1,
+                    borderColor: 'var(--border-subtle)',
+                    boxShadow: 'none'
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
                 <input
                     className="main-input"
                     type="text"
@@ -175,30 +160,122 @@ export default function Generator() {
                     onChange={(e) => setText(e.target.value)}
                 />
 
-                {activeMode === 'fonts' && renderModifiers()}
+                {activeMode === 'fonts' && (
+                    <div className="modifier-bar">
+                        <button className={`modifier-btn ${!activeDecoration && !isGlitchActive ? 'active' : ''}`} onClick={() => { setActiveDecoration(null); setIsGlitchActive(false); }}>NORMAL</button>
+                        <button className={`modifier-btn ${isGlitchActive ? 'active' : ''}`} onClick={() => setIsGlitchActive(!isGlitchActive)}>GLITCH</button>
+                        <div style={{ width: 1, background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
+                        {['Wings', 'Sparkle', 'Slashes'].map(deco => (
+                            <button
+                                key={deco}
+                                className={`modifier-btn ${activeDecoration === deco ? 'active' : ''}`}
+                                onClick={() => setActiveDecoration(activeDecoration === deco ? null : deco)}
+                            >{deco.toUpperCase()}</button>
+                        ))}
+                    </div>
+                )}
+            </motion.div>
+
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button className={`tab-btn ${activeMode === 'fonts' ? 'active' : ''}`} onClick={() => setActiveMode('fonts')}>STYLES</button>
+                    <button className={`tab-btn ${activeMode === 'kaomoji' ? 'active' : ''}`} onClick={() => setActiveMode('kaomoji')}>KAOMOJI</button>
+                    <button className={`tab-btn ${activeMode === 'preview' ? 'active' : ''}`} onClick={() => setActiveMode('preview')}>PREVIEW</button>
+                </div>
+
+                {activeMode === 'fonts' && (
+                    <label className="experimental-toggle">
+                        <input
+                            type="checkbox"
+                            checked={showExperimental}
+                            onChange={(e) => setShowExperimental(e.target.checked)}
+                        />
+                        <span className="toggle-label">EXPERIMENTAL</span>
+                    </label>
+                )}
             </div>
 
-            {/* Simple Mode Toggle */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-subtle)' }}>
-                <button
-                    className={`tab-btn ${activeMode === 'fonts' ? 'active' : ''}`}
-                    onClick={() => setActiveMode('fonts')}
-                >
-                    STYLES
-                </button>
-                <button
-                    className={`tab-btn ${activeMode === 'kaomoji' ? 'active' : ''}`}
-                    onClick={() => setActiveMode('kaomoji')}
-                >
-                    KAOMOJI
-                </button>
-            </div>
+            {/* Platform Preview Mode */}
+            {activeMode === 'preview' ? (
+                <div className="platform-previews">
+                    {/* Instagram Mockup */}
+                    <div className="preview-card instagram">
+                        <div className="preview-header"><i className="fa-brands fa-instagram"></i> Instagram Bio</div>
+                        <div className="preview-body">
+                            <div className="circle-avatar"></div>
+                            <div className="bio-lines">
+                                <div className="bio-name">Your Name</div>
+                                <div className="bio-text">{processText(text || "Fancy Font", 'MathBold')}</div>
+                                <div className="bio-text">{processText(text || "Fancy Font", 'MathItalic')}</div>
+                            </div>
+                        </div>
+                    </div>
 
-            {renderContent()}
+                    {/* WhatsApp Mockup */}
+                    <div className="preview-card whatsapp">
+                        <div className="preview-header"><i className="fa-brands fa-whatsapp"></i> WhatsApp Status</div>
+                        <div className="preview-body">
+                            <div className="message-bubble">
+                                {processText(text || "Fancy Font", 'Monospace')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div style={{ height: '60vh', width: '100%', position: 'relative' }}>
 
-            {toast && (
-                <div className="toast visible">
-                    <span>{toast}</span>
+                    {/* Ghost Typing Empty State */}
+                    <AnimatePresence>
+                        {text.length === 0 && activeMode === 'fonts' && (
+                            <motion.div
+                                className="ghost-overlay"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 0.5 }}
+                                exit={{ opacity: 0 }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '40%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    pointerEvents: 'none',
+                                    textAlign: 'center',
+                                    zIndex: 0,
+                                    color: 'var(--text-muted)'
+                                }}
+                            >
+                                <motion.div
+                                    animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.98, 1.02, 0.98] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <i className="fa-regular fa-keyboard" style={{ fontSize: '2.5rem', marginBottom: '1rem', display: 'block' }}></i>
+                                    <p style={{ fontSize: '1.2rem', letterSpacing: '1px' }}>KINETIC ENGINE READY</p>
+                                    <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>Type above to ignite the grid</p>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <AutoSizer>
+                        {({ height, width }) => {
+                            const columnCount = width > 800 ? 3 : (width > 500 ? 2 : 1);
+                            const rowCount = Math.ceil(gridData.length / columnCount);
+                            const columnWidth = width / columnCount;
+
+                            return (
+                                <Grid
+                                    columnCount={columnCount}
+                                    columnWidth={columnWidth}
+                                    height={height}
+                                    rowCount={rowCount}
+                                    rowHeight={cardHeight}
+                                    width={width}
+                                    itemData={{ items: gridData, columnCount }}
+                                >
+                                    {Cell}
+                                </Grid>
+                            );
+                        }}
+                    </AutoSizer>
                 </div>
             )}
         </section>

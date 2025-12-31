@@ -15,12 +15,17 @@ const FontCard = ({ fontName, transformedText, isFavorite, safety, onCopy, onTog
         setTimeout(() => setJustCopied(false), 300);
     };
 
-    // Map validation level to CSS class
-    const safetyClass = {
-        'safe': 'safety-safe',
-        'warning': 'safety-warn',
-        'danger': 'safety-danger'
-    }[safety?.level || 'safe'] || 'safety-safe';
+    // Simplified Safety/Trait logic ("DNA")
+    const getDnaBadges = () => {
+        const badges = [];
+        if (safety?.level === 'danger') badges.push({ icon: 'fa-triangle-exclamation', color: 'var(--danger)', title: 'Glitch Risk' });
+        if (safety?.level === 'warning') badges.push({ icon: 'fa-eye-slash', color: 'var(--warning)', title: 'Hard to read' });
+        if (fontName.includes('Zalgo') || fontName.includes('Glitch')) badges.push({ icon: 'fa-bolt', color: 'var(--accent)', title: 'Chaotic' });
+        if (fontName.includes('Bold') || fontName.includes('Heavy')) badges.push({ icon: 'fa-dumbbell', color: 'var(--text-main)', title: 'Bold' });
+        return badges;
+    };
+
+    const dnaBadges = getDnaBadges();
 
     return (
         <motion.div
@@ -29,22 +34,24 @@ const FontCard = ({ fontName, transformedText, isFavorite, safety, onCopy, onTog
             role="button"
             tabIndex={0}
             layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
             whileHover={{
                 scale: 1.02,
-                y: -5,
-                transition: { type: "spring", stiffness: 400, damping: 25 }
+                y: -4,
+                boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
             }}
-            whileTap={{ scale: 0.96 }}
+            whileTap={{ scale: 0.98 }}
         >
             <div className="card-header">
                 <span className="font-name">{fontName}</span>
-                <div className="card-meta" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span
-                        className={`safety-indicator ${safetyClass}`}
-                        title={safety?.reasons?.join('\n') || 'Safe for most platforms'}
-                    ></span>
+                <div className="card-meta" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    {dnaBadges.map((badge, i) => (
+                        <i
+                            key={i}
+                            className={`fa-solid ${badge.icon}`}
+                            style={{ color: badge.color, fontSize: '0.7em', opacity: 0.8 }}
+                            title={badge.title}
+                        ></i>
+                    ))}
                     <button
                         className="fav-btn"
                         onClick={(e) => { e.stopPropagation(); onToggleFav(fontName); }}

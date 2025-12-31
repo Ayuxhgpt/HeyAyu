@@ -4,10 +4,11 @@ import Hero from './components/Hero'
 import Footer from './components/Footer'
 import Generator from './components/Generator'
 import CustomCursor from './components/ui/CustomCursor'
+import { AdaptiveMotionProvider } from './context/MotionConfigContext'
 
 function App() {
   return (
-    <>
+    <AdaptiveMotionProvider>
       <CustomCursor />
       <div className="interactive-bg" id="interactiveBg"></div>
       <div className="noise-overlay"></div>
@@ -42,7 +43,7 @@ function App() {
 
         <Footer />
       </div>
-    </>
+    </AdaptiveMotionProvider>
   )
 }
 
